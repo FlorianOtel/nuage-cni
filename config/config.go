@@ -12,21 +12,25 @@ import (
 )
 
 // Configuration file -- Same data structure for both CNI agent and CNI plugin, but they will use different fields (different configuration file entries & CLI flag parsing)
+// XXX - the embedded types with same name are for YAML (un)marshalling purposes
+
+// XXX - Still TBD if we still need this, or different components should define their own variant hereof
+
 type Config struct {
 	// Only available as CLI options
 	Orchestrator string `yaml:"-"`
 	ConfigFile   string `yaml:"-"`
 	// Config file fields
-	VrsConfig   vrsConfig   `yaml:"vrs-config"`
-	AgentConfig agentConfig `yaml:"agent-config"`
+	VrsConfig   VrsConfig   `yaml:"vrs-config"`
+	AgentConfig AgentConfig `yaml:"agent-config"`
 }
 
-type vrsConfig struct {
+type VrsConfig struct {
 	Endpoint string `yaml:"endpoint"`
 	Bridge   string `yaml:"ovs-bridge"`
 }
 
-type agentConfig struct {
+type AgentConfig struct {
 	ServerPort string `yaml:"server-port"` // CNI Agent server port
 	CaFile     string `yaml:"caFile"`      // CNI Agent server CA certificate
 	CertCaFile string `yaml:"certcaFile"`  // CNI Agent server certificate + CA certificate (concatenated, in PEM format)
