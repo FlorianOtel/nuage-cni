@@ -1,0 +1,5 @@
+agent-config:
+  server-port: 7443
+  caFile: /opt/nuage/etc/ca.crt
+  certcaFile: /opt/nuage/etc/k8s-cri-o--20170926-1.pem
+  keyFile: /opt/nuage/etc/k8s-cri-o--20170926-1.key
