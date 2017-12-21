@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/opt/nuage/bin/nuage-cni-plugin -orchestrator=Kubernetes -v 10 -config /opt/nuage/etc/nuage-cni-config.yaml -alsologtostderr

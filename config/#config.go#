@@ -1,0 +1,48 @@
+package config
+
+import (
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path"
+
+	yaml "gopkg.in/yaml.v2"
+)
+
+// Configuration file -- Same data structure for both CNI agent and CNI plugin, but they will use different fields (different configuration file entries & CLI flag parsing)
+type Config struct {
+	// Only available as CLI options
+	Orchestrator string `yaml:"-"`
+	ConfigFile   string `yaml:"-"`
+	// Config file fields
+	VrsConfig   vrsConfig   `yaml:"vrs-config"`
+	AgentConfig agentConfig `yaml:"agent-config"`
+}
+
+type vrsConfig struct {
+	Endpoint string `yaml:"endpoint"`
+	Bridge   string `yaml:"ovs-bridge"`
+}
+
+type agentConfig struct {
+	ServerPort string `yaml:"server-port"` // CNI Agent server port
+	CaFile     string `yaml:"caFile"`      // CNI Agent server CA certificate
+	CertCaFile string `yaml:"certcaFile"`  // CNI Agent server certificate + CA certificate (concatenated, in PEM format)
+	KeyFile    string `yaml:"keyFile"`     // CNI Agent server private key
+}
+
+
+func LoadConfig(conf *Config) error {
+	data, err := ioutil.ReadFile(conf.ConfigFile)
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(data, conf); err != nil {
+		return err
+	}
+
+	return nil
+}

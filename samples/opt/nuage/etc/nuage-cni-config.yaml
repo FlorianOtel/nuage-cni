@@ -1,0 +1,8 @@
+vrs-config: 
+  endpoint: /var/run/openvswitch/db.sock
+  ovs-bridge: alubr0
+agent-config:
+  server-port: 7443
+  caFile: /opt/nuage/etc/ca.crt
+  certcaFile: /opt/nuage/etc/k8s-20161122-node1.pem
+  keyFile: /opt/nuage/etc/k8s-20161122-node1.key
