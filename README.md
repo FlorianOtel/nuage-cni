@@ -8,7 +8,7 @@ Consists of the following components:
 
 The CNI agent server and the CLI binary use X.509 certificates to authenticate each others and TLS encrypt the HTTP JSON transactions. For that purpose e.g. Kubernetes node certificates for `kubelet` can be (re)used, or any other suitable X.509 certificate valid for the respective host. Communication
 
-Both the `nuage-cni-agent` server and `nuage-cni-plugin` CLI binary share the same configuration file. Sample configuration file are in the `samples` directory, together with CNI specific configuration. 
+Both the `nuage-cni-agent` server and `nuage-cni` CLI binary share the same configuration file. Sample configuration file are in the `samples` directory, together with CNI specific configuration. 
 
 The code is _experimental_ and provided only as a use case for [Go SDK for Nuage Networks VSP](https://github.com/nuagenetworks/vspk-go/) and [Go SDK for Nuage Networks VRS](https://github.com/nuagenetworks/libvrsdk/). 
 

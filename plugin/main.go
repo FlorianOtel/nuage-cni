@@ -23,7 +23,7 @@ import (
 
 	vrsdk "github.com/nuagenetworks/libvrsdk/api"
 
-	"github.com/OpenPlatformSDN/cni-plugin/nuage-cni-plugin/util"
+	"github.com/OpenPlatformSDN/cni-plugin/nuage-cni/util"
 )
 
 const (

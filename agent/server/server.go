@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/OpenPlatformSDN/nuage-cni-plugin/agent/types"
-	nuagecnitypes "github.com/OpenPlatformSDN/nuage-cni-plugin/types"
+	"github.com/OpenPlatformSDN/nuage-cni/agent/types"
+	nuagecnitypes "github.com/OpenPlatformSDN/nuage-cni/types"
 
-	"github.com/OpenPlatformSDN/nuage-cni-plugin/config"
-	"github.com/OpenPlatformSDN/nuage-cni-plugin/errors"
+	"github.com/OpenPlatformSDN/nuage-cni/config"
+	"github.com/OpenPlatformSDN/nuage-cni/errors"
 	"github.com/nuagenetworks/vspk-go/vspk"
 
 	"github.com/nuagenetworks/go-bambou/bambou"

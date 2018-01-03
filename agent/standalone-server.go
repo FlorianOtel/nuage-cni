@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/OpenPlatformSDN/nuage-cni-plugin/agent/server"
+	"github.com/OpenPlatformSDN/nuage-cni/agent/server"
 
-	"github.com/OpenPlatformSDN/nuage-cni-plugin/config"
+	"github.com/OpenPlatformSDN/nuage-cni/config"
 
 	"flag"
 	"os"
