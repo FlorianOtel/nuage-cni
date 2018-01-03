@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	agenttypes "github.com/OpenPlatformSDN/cni-plugin/nuage-cni-agent/types"
+	"github.com/OpenPlatformSDN/nuage-cni-plugin/agent/types"
+	nuagecnitypes "github.com/OpenPlatformSDN/nuage-cni-plugin/types"
 
+	"github.com/OpenPlatformSDN/nuage-cni-plugin/config"
+	"github.com/OpenPlatformSDN/nuage-cni-plugin/errors"
 	"github.com/nuagenetworks/vspk-go/vspk"
-	"github.com/OpenPlatformSDN/cni-plugin/config"
-	"github.com/OpenPlatformSDN/cni-plugin/errors"
 
-	nuagecnitypes "github.com/OpenPlatformSDN/cni-plugin/types"
 	"github.com/nuagenetworks/go-bambou/bambou"
 
 	"github.com/golang/glog"
@@ -42,38 +42,44 @@ var (
 func Server(conf *config.Config) error {
 
 	router := mux.NewRouter()
-	////
-	//// Cached Containers: Cache / retrieve vspk.Container (temporary cache; Contains entries / valid during the top part of split activation). Only PUT, GET, DELETE.
-	////
-	// PUT  <-- vspk.Container
-	router.HandleFunc(agenttypes.ContainerPath+"{name}", PutContainer).Methods("PUT")
-	// GET --> vspk.Container
-	router.HandleFunc(agenttypes.ContainerPath, GetContainers).Methods("GET")
-	router.HandleFunc(agenttypes.ContainerPath+"{name}", GetContainer).Methods("GET")
-	// DELETE --> vspk.Container
-	router.HandleFunc(agenttypes.ContainerPath+"{name}", DeleteContainer).Methods("DELETE")
+
 	////
 	//// CNI Networks: Create/Retrieve/Delete CNI NetConf
 	////
 	// POST <-- NetConf
-	router.HandleFunc(agenttypes.NetconfPath, PostNetwork).Methods("POST")
+	router.HandleFunc(types.NetconfPath, PostNetwork).Methods("POST")
 	// GET   --> NetConf
-	router.HandleFunc(agenttypes.NetconfPath, GetNetworks).Methods("GET")
-	router.HandleFunc(agenttypes.NetconfPath+"{name}", GetNetwork).Methods("GET")
+	router.HandleFunc(types.NetconfPath, GetNetworks).Methods("GET")
+	router.HandleFunc(types.NetconfPath+"{name}", GetNetwork).Methods("GET")
 	// DELETE <-- NetConf
-	router.HandleFunc(agenttypes.NetconfPath+"{name}", DeleteNetwork).Methods("DELETE")
+	router.HandleFunc(types.NetconfPath+"{name}", DeleteNetwork).Methods("DELETE")
+
+	////
+	//// Cached Containers: Cache / retrieve vspk.Container (temporary cache; Contains entries / valid during the top part of split activation). Only PUT, GET, DELETE.
+	////
+	// PUT  <-- vspk.Container
+	router.HandleFunc(types.ContainerPath+"{name}", PutContainer).Methods("PUT")
+	// GET --> vspk.Container
+	router.HandleFunc(types.ContainerPath, GetContainers).Methods("GET")
+	router.HandleFunc(types.ContainerPath+"{name}", GetContainer).Methods("GET")
+	// DELETE --> vspk.Container
+	router.HandleFunc(types.ContainerPath+"{name}", DeleteContainer).Methods("DELETE")
+
 	////
 	////  CNI Interfaces: Create/Modify/Retreive/Delete []Result
 	////  - Only PUT with a specific Name. "Name" convention may be specific to a platform. E.g. for K8S is <podName>_<podNameSpace>
 	////
 	// PUT
-	router.HandleFunc(agenttypes.ResultPath+"{name}", PutContainerInterfaces).Methods("PUT")
+	router.HandleFunc(types.ResultPath+"{name}", PutContainerInterfaces).Methods("PUT")
 	// GET --> Result
-	router.HandleFunc(agenttypes.ResultPath, GetInterfaces).Methods("GET")
-	router.HandleFunc(agenttypes.ResultPath+"{name}", GetContainerInterfaces).Methods("GET")
+	router.HandleFunc(types.ResultPath, GetInterfaces).Methods("GET")
+	router.HandleFunc(types.ResultPath+"{name}", GetContainerInterfaces).Methods("GET")
 	// DELETE <-- uuid
-	router.HandleFunc(agenttypes.ResultPath+"{name}", DeleteContainerInterfaces).Methods("DELETE")
-	////////
+	router.HandleFunc(types.ResultPath+"{name}", DeleteContainerInterfaces).Methods("DELETE")
+
+	////
+	////
+	////
 	return http.ListenAndServeTLS(":"+conf.AgentConfig.ServerPort, conf.AgentConfig.CertCaFile, conf.AgentConfig.KeyFile, router)
 }
 

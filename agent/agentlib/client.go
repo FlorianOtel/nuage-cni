@@ -1,7 +1,7 @@
 package agentclient
 
 ////
-//// Common utilities for CNI Agent server clients
+//// Common primitives for clients to the Nuage CNI Agent server
 ////
 
 import (
