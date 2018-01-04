@@ -39,7 +39,7 @@ var (
 	Interfaces = make(map[string][]nuagecnitypes.Result)
 )
 
-func Server(conf *config.Config) error {
+func Server(conf config.AgentConfig) error {
 
 	router := mux.NewRouter()
 
@@ -80,7 +80,7 @@ func Server(conf *config.Config) error {
 	////
 	////
 	////
-	return http.ListenAndServeTLS(":"+conf.AgentConfig.ServerPort, conf.AgentConfig.CertCaFile, conf.AgentConfig.KeyFile, router)
+	return http.ListenAndServeTLS(":"+conf.ServerPort, conf.CertCaFile, conf.KeyFile, router)
 }
 
 ////////

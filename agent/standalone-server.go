@@ -21,9 +21,9 @@ const (
 
 func main() {
 
-	Config := new(config.Config)
+	conf := new(config.Config)
 
-	Flags(Config, flag.CommandLine)
+	Flags(conf, flag.CommandLine)
 	flag.Parse()
 
 	if len(os.Args) == 1 { // With no arguments, print default usage
@@ -35,12 +35,12 @@ func main() {
 
 	glog.Infof("===> Starting %s...", path.Base(os.Args[0]))
 
-	if err := config.LoadConfig(Config); err != nil {
+	if err := config.LoadConfig(conf); err != nil {
 		glog.Fatalf("Cannot read configuration file: %s", err)
 
 	}
 
-	if err := server.Server(Config); err != nil {
+	if err := server.Server(conf.AgentConfig); err != nil {
 		glog.Fatalf("Failed to start agent server: %s", err)
 	}
 }
