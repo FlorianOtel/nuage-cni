@@ -54,16 +54,16 @@ func Flags(conf *config.Config, flagSet *flag.FlagSet) {
 		"/opt/nuage/etc/nuage-cni-config.yaml", "Nuage CNI agent server configuration file. If this file is specified, remaining arguments will be ignored")
 
 	flagSet.StringVar(&conf.AgentConfig.ServerPort, "serverport",
-		"7443", "Nuage CNI agent and client: Agent server port")
+		"7443", "Nuage CNI agent server port")
 
 	flagSet.StringVar(&conf.AgentConfig.CaFile, "cafile",
-		"/opt/nuage/etc/ca.crt", "Nuage CNI agent and client: Agent server CA certificate")
+		"/opt/nuage/etc/ca.crt", "Nuage CNI agent server CA certificate")
 
 	flagSet.StringVar(&conf.AgentConfig.CertCaFile, "certcafile",
-		"/opt/nuage/etc/agent-server.pem", "Nuage CNI agent and client: Agent server certificate (server + CA certificates PEM file)")
+		"/opt/nuage/etc/agent-server.pem", "Nuage CNI agent server certificate (server + CA certificates PEM file)")
 
 	flagSet.StringVar(&conf.AgentConfig.KeyFile, "keyfile",
-		"/opt/nuage/etc/agent-server.key", "Nuage CNI agent and client: Agent server private key file")
+		"/opt/nuage/etc/agent-server.key", "Nuage CNI agent server private key file")
 	// Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
 	// Also set the DefValue parameter so -help shows the new defaults.
 	// XXX - Make sure "glog" package is imported at this point, otherwise this will panic
