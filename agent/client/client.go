@@ -1,4 +1,4 @@
-package clientlib
+package client
 
 ////
 //// Common primitives for clients to the Nuage CNI Agent server
@@ -6,6 +6,8 @@ package clientlib
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +15,10 @@ import (
 	"net/http"
 	"time"
 
-	nuagecnitypes "github.com/OpenPlatformSDN/cni-plugin/types"
+	"github.com/OpenPlatformSDN/nuage-cni/agent/types"
+	"github.com/OpenPlatformSDN/nuage-cni/config"
+
+	nuagecnitypes "github.com/OpenPlatformSDN/nuage-cni/types"
 	"github.com/golang/glog"
 	"github.com/nuagenetworks/vspk-go/vspk"
 )
@@ -27,16 +32,53 @@ const (
 	ContainerPath = "/nuage/containers/" // Agent server relative path for vspk.Container cache
 )
 
+// We assume that all Agent servers run on all host at the same "ServerPort"
+var (
+	Client     *http.Client
+	ServerPort string
+)
+
+func InitClient(conf config.AgentConfig) error {
+
+	// Pick up Agent server port from startup configuration
+	ServerPort = conf.ServerPort
+
+	certPool := x509.NewCertPool()
+
+	if pemData, err := ioutil.ReadFile(conf.CaFile); err != nil {
+		err = fmt.Errorf("Error loading CNI agent server CA certificate data from: %s. Error: %s", conf.CaFile, err)
+		glog.Error(err)
+		return err
+	} else {
+		certPool.AppendCertsFromPEM(pemData)
+	}
+
+	// configure a TLS client to use those certificates
+	Client = new(http.Client)
+	*Client = http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:    types.MAX_CONNS,
+			IdleConnTimeout: types.MAX_IDLE,
+			TLSClientConfig: &tls.Config{
+				RootCAs: certPool,
+				// InsecureSkipVerify: true, // In case we want to skip server verification
+			},
+		},
+	}
+
+	return nil
+}
+
 ////////
 //////// Agent server operations
 //////// XXX - Notes: The following assumptions are made:
-//////// - Users have a properly configured "*http.Client"
+//////// - Client (*http.Client) was initialized correctly i.e. InitClient() was called previously
 //////// - No attempts are made to check if the hostname is a valid DNS entry (http.Client will issue an error)
 
-// Poll for a given Container name
-func ContainerPoll(client *http.Client, host, port, cname string) (*vspk.Container, error) {
-	uri := "https://" + host + ":" + port + ContainerPath + cname
-	reply, err := agentPoll(client, uri)
+// Poll for a given Container name at an agent running on host
+func ContainerPoll(host, cname string) (*vspk.Container, error) {
+	uri := "https://" + host + ":" + ServerPort + ContainerPath + cname
+	reply, err := agentPoll(uri)
 
 	if err != nil {
 		glog.Errorf("--> Failed to fetch information for Container: %s from CNI Agent server. Agent server URI: %s . Error: %s ", cname, uri, err)
@@ -51,10 +93,10 @@ func ContainerPoll(client *http.Client, host, port, cname string) (*vspk.Contain
 }
 
 // Get a given Container using container name
-func ContainerGET(client *http.Client, host, port, cname string) (*vspk.Container, error) {
+func ContainerGET(host, cname string) (*vspk.Container, error) {
 	container := vspk.Container{}
-	uri := "https://" + host + ":" + port + ContainerPath + cname
-	reply, err := agentGET(client, uri)
+	uri := "https://" + host + ":" + ServerPort + ContainerPath + cname
+	reply, err := agentGET(uri)
 
 	if err != nil {
 		glog.Errorf("--> Failed to GET data from CNI Agent server. Agent server URI: %s . Error: %s ", uri, err)
@@ -68,9 +110,9 @@ func ContainerGET(client *http.Client, host, port, cname string) (*vspk.Containe
 }
 
 // Use "vspk.Container.Name" as URI key
-func ContainerPUT(client *http.Client, host string, port string, container *vspk.Container) error {
-	uri := "https://" + host + ":" + port + ContainerPath + container.Name
-	err := agentPUT(client, uri, container)
+func ContainerPUT(host string, container *vspk.Container) error {
+	uri := "https://" + host + ":" + ServerPort + ContainerPath + container.Name
+	err := agentPUT(uri, container)
 	if err != nil {
 		glog.Errorf("--> Failed to PUT Container: %s to CNI Agent server. Agent server URI: %s . Error: %s", container.Name, uri, err)
 
@@ -79,9 +121,9 @@ func ContainerPUT(client *http.Client, host string, port string, container *vspk
 }
 
 //  "cname" is container name
-func ContainerDELETE(client *http.Client, host string, port, cname string) error {
-	uri := "https://" + host + ":" + port + ContainerPath + cname
-	err := agentDELETE(client, uri)
+func ContainerDELETE(host string, cname string) error {
+	uri := "https://" + host + ":" + ServerPort + ContainerPath + cname
+	err := agentDELETE(uri)
 	if err != nil {
 		glog.Errorf("--> Failed to DELETE Container: %s from CNI Agent server. Agent server URI: %s . Error: %s", cname, uri, err)
 	}
@@ -90,9 +132,9 @@ func ContainerDELETE(client *http.Client, host string, port, cname string) error
 }
 
 // PUT CNI Container Information at the agent server -- as  []nuagecnitypes.Result under the given key (normally, "vspk.Container.Name")
-func ResultsPUT(client *http.Client, host, port, key string, rez []nuagecnitypes.Result) error {
-	uri := "https://" + host + ":" + port + ResultPath + key
-	err := agentPUT(client, uri, rez)
+func ResultsPUT(host, key string, rez []nuagecnitypes.Result) error {
+	uri := "https://" + host + ":" + ServerPort + ResultPath + key
+	err := agentPUT(uri, rez)
 	if err != nil {
 		glog.Errorf("--> Failed to PUT CNI container information to CNI Agent server. Agent server URI: %s . Error: %s", uri, err)
 	}
@@ -100,9 +142,9 @@ func ResultsPUT(client *http.Client, host, port, key string, rez []nuagecnitypes
 }
 
 // DELETE CNI Container Information from agent server  -- (key is "vspk.Container.Name")
-func ResultsDELETE(client *http.Client, host, port, key string) error {
-	uri := "https://" + host + ":" + port + ResultPath + key
-	err := agentDELETE(client, uri)
+func ResultsDELETE(host, key string) error {
+	uri := "https://" + host + ":" + ServerPort + ResultPath + key
+	err := agentDELETE(uri)
 	if err != nil {
 		glog.Errorf("--> Failed to DELETE CNI container information from CNI Agent server. Agent server URI: %s . Error: %s", uri, err)
 	}
@@ -115,7 +157,7 @@ func ResultsDELETE(client *http.Client, host, port, key string) error {
 
 // Polls Agent server at given uri. Polling with exponential backoff, time-out after MAX_IDLE
 // Returns payload as []byte
-func agentPoll(client *http.Client, uri string) ([]byte, error) {
+func agentPoll(uri string) ([]byte, error) {
 
 	//// XXX -- Timeouts. Adjust accordingly
 	wait := 100 * time.Millisecond // Quite aggressive
@@ -126,7 +168,7 @@ func agentPoll(client *http.Client, uri string) ([]byte, error) {
 
 	// Waiting loop with exponential backoff...
 	for t := wait; t < timeout; t = t * 2 {
-		resp, err := client.Get(uri)
+		resp, err := Client.Get(uri)
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +196,7 @@ func agentPoll(client *http.Client, uri string) ([]byte, error) {
 }
 
 // PUT arbitrary data to agent server, JSON encoded
-func agentPUT(client *http.Client, uri string, data interface{}) error {
+func agentPUT(uri string, data interface{}) error {
 	req, _ := http.NewRequest("PUT", uri, nil)
 	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 
@@ -169,7 +211,7 @@ func agentPUT(client *http.Client, uri string, data interface{}) error {
 	// ? Do we really need to do this (?)
 	defer req.Body.Close()
 
-	resp, err := client.Do(req)
+	resp, err := Client.Do(req)
 	if err != nil {
 		glog.Errorf("Error sending 'PUT' HTTP request to agent server: %s", err)
 		return err
@@ -187,9 +229,9 @@ func agentPUT(client *http.Client, uri string, data interface{}) error {
 }
 
 // GET the data at given URI from the agent server
-func agentGET(client *http.Client, uri string) ([]byte, error) {
+func agentGET(uri string) ([]byte, error) {
 	req, _ := http.NewRequest("GET", uri, nil)
-	resp, err := client.Do(req)
+	resp, err := Client.Do(req)
 	if err != nil {
 		glog.Errorf("Error sending 'GET' HTTP request to agent server: %s", err)
 		return []byte{}, err
@@ -207,10 +249,10 @@ func agentGET(client *http.Client, uri string) ([]byte, error) {
 }
 
 // DELETE data at given URI from the agent server
-func agentDELETE(client *http.Client, uri string) error {
+func agentDELETE(uri string) error {
 	req, _ := http.NewRequest("DELETE", uri, nil)
 
-	resp, err := client.Do(req)
+	resp, err := Client.Do(req)
 	if err != nil {
 		glog.Errorf("Error sending 'DELETE' HTTP request to agent server: %s", err)
 		return err
