@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/OpenPlatformSDN/nuage-cni/agent/server"
 
@@ -24,7 +23,6 @@ func main() {
 	conf := new(config.Config)
 
 	Flags(conf, flag.CommandLine)
-	flag.Parse()
 
 	if len(os.Args) == 1 { // With no arguments, print default usage
 		flag.PrintDefaults()
@@ -67,16 +65,24 @@ func Flags(conf *config.Config, flagSet *flag.FlagSet) {
 	// Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
 	// Also set the DefValue parameter so -help shows the new defaults.
 	// XXX - Make sure "glog" package is imported at this point, otherwise this will panic
-	log_dir := flagSet.Lookup("log_dir")
-	log_dir.Value.Set(fmt.Sprintf("/var/log/%s", path.Base(os.Args[0])))
-	log_dir.DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
-	logtostderr := flagSet.Lookup("logtostderr")
-	logtostderr.Value.Set("false")
-	logtostderr.DefValue = "false"
-	stderrlogthreshold := flagSet.Lookup("stderrthreshold")
-	stderrlogthreshold.Value.Set("2")
-	stderrlogthreshold.DefValue = "2"
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
+	// Also set the DefValue parameter so -help shows the new defaults.
+	// XXX - Make sure "glog" package is imported at this point, otherwise this will panic
+	flagSet.Lookup("log_dir").DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
+	flagSet.Lookup("logtostderr").DefValue = "false"
+	flagSet.Lookup("stderrthreshold").DefValue = errorLogLevel
+
+	flag.Parse()
+
+	// Set log_dir -- either to given value or to the default + create the directory
+	if mylogdir := flag.CommandLine.Lookup("log_dir").Value.String(); mylogdir != "" {
+		os.MkdirAll(mylogdir, os.ModePerm)
+	} else { // set it to default log_dir value
+		flag.CommandLine.Lookup("log_dir").Value.Set(flag.CommandLine.Lookup("log_dir").DefValue)
+		os.MkdirAll(flag.CommandLine.Lookup("log_dir").DefValue, os.ModePerm)
+	}
+
 }
 
 /*
@@ -108,19 +114,22 @@ func Flags(conf *config.Config, flagSet *flag.FlagSet) {
 
 	flagSet.StringVar(&conf.AgentConfig.KeyFile, "keyfile",
 		"/opt/nuage/etc/agent-server.key", "Nuage CNI agent and client: Agent server private key file")
-	// Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
-	// Also set the DefValue parameter so -help shows the new defaults.
-	// XXX - Make sure "glog" package is imported at this point, otherwise this will panic
-	log_dir := flagSet.Lookup("log_dir")
-	log_dir.Value.Set(fmt.Sprintf("/var/log/%s", path.Base(os.Args[0])))
-	log_dir.DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
-	logtostderr := flagSet.Lookup("logtostderr")
-	logtostderr.Value.Set("false")
-	logtostderr.DefValue = "false"
-	stderrlogthreshold := flagSet.Lookup("stderrthreshold")
-	stderrlogthreshold.Value.Set("2")
-	stderrlogthreshold.DefValue = "2"
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+        // Set the values for log_dir and logtostderr.  Because this happens before flag.Parse(), cli arguments will override these.
+        // Also set the DefValue parameter so -help shows the new defaults.
+        // XXX - Make sure "glog" package is imported at this point, otherwise this will panic
+        flagSet.Lookup("log_dir").DefValue = fmt.Sprintf("/var/log/%s", path.Base(os.Args[0]))
+        flagSet.Lookup("logtostderr").DefValue = "false"
+        flagSet.Lookup("stderrthreshold").DefValue = errorLogLevel
+
+        flag.Parse()
+
+        // Set log_dir -- either to given value or to the default + create the directory
+        if mylogdir := flag.CommandLine.Lookup("log_dir").Value.String(); mylogdir != "" {
+                os.MkdirAll(mylogdir, os.ModePerm)
+        } else { // set it to default log_dir value
+                flag.CommandLine.Lookup("log_dir").Value.Set(flag.CommandLine.Lookup("log_dir").DefValue)
+                os.MkdirAll(flag.CommandLine.Lookup("log_dir").DefValue, os.ModePerm)
+        }
 }
 
 */

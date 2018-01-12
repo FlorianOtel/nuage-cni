@@ -1,4 +1,4 @@
-package agentclient
+package clientlib
 
 ////
 //// Common primitives for clients to the Nuage CNI Agent server
