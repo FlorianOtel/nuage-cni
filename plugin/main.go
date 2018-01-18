@@ -11,11 +11,11 @@ import (
 	"path"
 	"strings"
 
-	agent "github.com/OpenPlatformSDN/cni-plugin/nuage-cni-agent/client"
-	agenttypes "github.com/OpenPlatformSDN/cni-plugin/nuage-cni-agent/types"
+	agent "github.com/OpenPlatformSDN/nuage-cni/agent/client"
+	agenttypes "github.com/OpenPlatformSDN/nuage-cni/agent/types"
 
-	nuagecniconfig "github.com/OpenPlatformSDN/cni-plugin/config"
-	nuagecnitypes "github.com/OpenPlatformSDN/cni-plugin/types"
+	nuagecniconfig "github.com/OpenPlatformSDN/nuage-cni/config"
+	nuagecnitypes "github.com/OpenPlatformSDN/nuage-cni/types"
 	"github.com/containernetworking/cni/pkg/skel"
 	currentcni "github.com/containernetworking/cni/pkg/types/current"
 	"github.com/containernetworking/cni/pkg/version"
@@ -23,7 +23,7 @@ import (
 
 	vrsdk "github.com/nuagenetworks/libvrsdk/api"
 
-	"github.com/OpenPlatformSDN/cni-plugin/nuage-cni/util"
+	"github.com/OpenPlatformSDN/nuage-cni/plugin/util"
 )
 
 const (

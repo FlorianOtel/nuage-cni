@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/OpenPlatformSDN/cni-plugin/config"
-	nuagecnitypes "github.com/OpenPlatformSDN/cni-plugin/types"
+	"github.com/OpenPlatformSDN/nuage-cni/config"
+	nuagecnitypes "github.com/OpenPlatformSDN/nuage-cni/types"
 	"github.com/containernetworking/cni/pkg/ip"
 	"github.com/containernetworking/cni/pkg/ns"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
